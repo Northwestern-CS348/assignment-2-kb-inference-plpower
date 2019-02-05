@@ -127,18 +127,51 @@ class KnowledgeBase(object):
         """
         printv("Retracting {!r}", 0, verbose, [fact_or_rule])
         ####################################################
-        # Student code goes here
-        
+        if isinstance(fact_or_rule, Fact):
+            myfact = self._get_fact(fact_or_rule)
+            if len(fact_or_rule.supported_by) == 0:
+                self.kb_remove(myfact)
+            fact_or_rule.asserted = False
+
+
+    def kb_remove(self, fact_or_rule):
+        if isinstance(fact_or_rule, Fact) and len(fact_or_rule.supported_by) == 0:
+            self.facts.remove(fact_or_rule)
+            for f in fact_or_rule.supports_facts:
+                for e in f.supported_by:
+                    if fact_or_rule in e:
+                        f.supported_by.remove(e)
+                self.kb_remove(f)
+            for r in fact_or_rule.supports_rules:
+                for e in r.supported_by:
+                    if fact_or_rule in e:
+                        r.supported_by.remove(e)
+                self.kb_remove(r)
+        if isinstance(fact_or_rule, Rule):
+            if fact_or_rule.asserted is False and len(fact_or_rule.supported_by) == 0:
+                self.rules.remove(fact_or_rule)
+                for f in fact_or_rule.supports_facts:
+                    for e in f.supported_by:
+                        if fact_or_rule in e:
+                            f.supported_by.remove(e)
+                    self.kb_remove(f)
+                for r in fact_or_rule.supports_rules:
+                    for e in r.supported_by:
+                        if fact_or_rule in e:
+                            r.supported_by.remove(e)
+                    self.kb_remove(r)
+        # if is a fact, go through the facts/rules it supports
+        # if the fact/rule it supports was asserted (don't remove)
+        # if the fact/rule it supports has no other supporting
+        # fact/rules, remove it'''
 
 class InferenceEngine(object):
     def fc_infer(self, fact, rule, kb):
         """Forward-chaining to infer new facts and rules
-
         Args:
             fact (Fact) - A fact from the KnowledgeBase
             rule (Rule) - A rule from the KnowledgeBase
             kb (KnowledgeBase) - A KnowledgeBase
-
         Returns:
             Nothing            
         """
@@ -146,3 +179,37 @@ class InferenceEngine(object):
             [fact.statement, rule.lhs, rule.rhs])
         ####################################################
         # Student code goes here
+        new_list = []
+        if match(fact.statement, rule.lhs[0]):
+            matches = match(fact.statement, rule.lhs[0])
+            if len(rule.lhs) > 1:
+                # this is when it's a rule, get all the LHSs
+                for left in rule.lhs[1:]:
+                    new_list.append(instantiate(left, matches))
+                # get new RHS
+                right_hs = instantiate(rule.rhs, matches)
+                nr = Rule([new_list, right_hs], [[fact, rule]])
+                kb.kb_add(nr)
+                fact.supports_facts.append(kb._get_rule(nr))
+                rule.supports_facts.append(kb._get_rule(nr))
+            else:
+                # when it's a fact, just do one match
+                # nf_statement = instantiate(rule.rhs, matches)
+                nf = Fact(instantiate(rule.rhs, matches), [[fact, rule]])
+                kb.kb_add(nf)
+                fact.supports_facts.append(kb._get_fact(nf))
+                rule.supports_facts.append(kb._get_fact(nf))
+            # if fact matches to any rule's LHS
+            # "infer" new fact by binding vars to rule's RHS
+            # loop through all of rule.lhs[1:] (that omits the first one)
+            # need to instantiate for all the possible lhs's
+            # with each match, add that to the "new left hand side"
+
+
+
+
+
+
+
+
+

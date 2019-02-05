@@ -59,7 +59,7 @@ def match_recursive(terms1, terms2, bindings):  # recursive...
         return False
     return match_recursive(terms1[1:], terms2[1:], bindings)
 
-def instantiate(statement, bindings):
+def instantiate(statement: object, bindings: object) -> object:
     """Generate Statement from given statement and bindings. Constructed statement
         has bound values for variables if they exist in bindings.
 
