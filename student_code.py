@@ -190,8 +190,8 @@ class InferenceEngine(object):
                 right_hs = instantiate(rule.rhs, matches)
                 nr = Rule([new_list, right_hs], [[fact, rule]])
                 kb.kb_add(nr)
-                fact.supports_facts.append(kb._get_rule(nr))
-                rule.supports_facts.append(kb._get_rule(nr))
+                fact.supports_rules.append(kb._get_rule(nr))
+                rule.supports_rules.append(kb._get_rule(nr))
             else:
                 # when it's a fact, just do one match
                 # nf_statement = instantiate(rule.rhs, matches)
